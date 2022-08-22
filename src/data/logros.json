@@ -1,0 +1,246 @@
+{
+    "testDeHoy3tests":{
+        "id": "testDeHoy3tests",
+        "description": "Completa 3 \"Test del día\" seguidos, sin saltarte un día.",
+        "stars":1,
+        "name":"Practica diariamente (3 días)",
+        "key": "testDeHoySeguidos",
+        "value": 3,
+        "type": "Test De Hoy"
+    },
+    "testDeHoy5tests":{
+        "id": "testDeHoy5tests",
+        "description": "Completa 5 \"Test del día\" seguidos, sin saltarte un día.",
+        "stars":2,
+        "name":"Practica diariamente (5 días)",
+        "key": "testDeHoySeguidos",
+        "value": 5,
+        "type": "Test De Hoy"
+    },
+    "testDeHoy7tests":{
+        "id": "testDeHoy7tests",
+        "description": "Completa una semana entera de \"Test del día\" seguidos, sin saltarte un día.",
+        "stars":3,
+        "name":"Practica diariamente (7 días)",
+        "key": "testDeHoySeguidos",
+        "value": 7,
+        "type":"Test De Hoy"
+    },
+    "inicioMensajes":{
+        "id": "inicioMensajes",
+        "description":"Lee 50 datos curiosos (mensajes que aparecen en el pie de página de Inicio).",
+        "stars":1,
+        "name": "Cultiva el conocimiento",
+        "key": "mensajes",
+        "value": 50,
+        "type": "General"
+    },
+    "documentosFormulario":{
+        "id": "documentosFormulario",
+        "description":"Descárgate el documento 'Formulario de olimpiadas' del apartado Documentos.",
+        "stars":1,
+        "name": "La fórmula del éxito",
+        "key": "formulario",
+        "value": 1,
+        "type": "Documentos"
+    },
+    "documentosRecursos":{
+        "id": "documentosRecursos",
+        "description":"Accede a la carpeta de RECURSOS QUÍMICA desde el apartado Documentos.",
+        "stars":1,
+        "name": "Aprende a aprender",
+        "key": "recursos",
+        "value": 1,
+        "type": "Documentos"
+    },
+    "documentosDescargas1":{
+        "id": "documentosDescargas1",
+        "description":"Descárgate un archivo.",
+        "stars":1,
+        "name": "Conocimiento para las olimpiadas (fácil)",
+        "key": "downloadedDocs",
+        "value": 1,
+        "type": "Documentos"
+    },
+    "documentosDescargas10":{
+        "id": "documentosDescargas10",
+        "description":"Descárgate 10 archivos.",
+        "stars":2,
+        "name": "Conocimiento para las olimpiadas (medio)",
+        "key": "downloadedDocs",
+        "value": 10,
+        "type": "Documentos"
+    },
+    "documentosDescargas100":{
+        "id": "documentosDescargas100",
+        "description":"Descárgate 100 archivos.",
+        "stars": 3,
+        "name": "Conocimiento para las olimpiadas (difícil)",
+        "key": "downloadedDocs",
+        "value": 100,
+        "type": "Documentos"
+    },
+    "puntuacionesUn10":{
+        "id": "puntuacionesUn10",
+        "description": "Consigue una puntuación de 10 en un tema.",
+        "stars":2,
+        "name": "Conviértete en un experto (1 tema)",
+        "key": "numberOf10",
+        "value": 1,
+        "type": "General"
+    },
+    "puntuacionesTres10":{
+        "id": "puntuacionesTres10",
+        "description": "Consigue una puntuación de 10 en tres temas.",
+        "stars":3,
+        "name" :"Conviértete en un experto (3 temas)",
+        "key": "numberOf10",
+        "value": 3,
+        "type": "General"
+    },
+    "puntuacionesNueve10":{
+        "id": "puntuacionesNueve10",
+        "description": "Consigue una puntuación de 10 en nueve temas.",
+        "stars":4,
+        "name": "Conviértete en un experto (9 temas)",
+        "key": "numberOf10",
+        "value": 9,
+        "type":"General"
+    },
+    "testDeHoyMaxPunt1":{
+        "id": "testDeHoyMaxPunt1",
+        "description": "Consigue la puntuación máxima (5 puntos) en un \"Test de Hoy\".",
+        "stars":1,
+        "name": "Haz un pleno",
+        "key": "testDeHoyMaxPunt",
+        "value": 1,
+        "type":"Test De Hoy"
+    },
+    "testDeHoyMaxPunt10":{
+        "id": "testDeHoyMaxPunt10",
+        "description": "Consigue la puntuación máxima (5 puntos) en 10 \"Test de Hoy\".",
+        "stars":2,
+        "name": "Haz 10 plenos",
+        "key": "testDeHoyMaxPunt",
+        "value": 10,
+        "type":"Test De Hoy"
+    },
+    "testDeHoyMaxPunt50":{
+        "id": "testDeHoyMaxPunt50",
+        "description": "Consigue la puntuación máxima (5 puntos) en 50 \"Test de Hoy\".",
+        "stars":3,
+        "name": "Haz 50 plenos",
+        "key": "testDeHoyMaxPunt",
+        "value": 50,
+        "type":"Test De Hoy"
+    },
+    "preguntasDone100":{
+        "id": "preguntasDone100",
+        "description": "Realiza 100 preguntas de tests (cuenta tanto en \"Test de Hoy\" como en \"Online\").",
+        "stars":1,
+        "name": "Un mol de preguntas (fácil)",
+        "key": "preguntasDone",
+        "value": 100,
+        "type":"General"
+    },
+    "preguntasDone500":{
+        "id": "preguntasDone500",
+        "description": "Realiza 500 preguntas de tests (cuenta tanto en \"Test de Hoy\" como en \"Online\").",
+        "stars":2,
+        "name": "Un mol de preguntas (medio)",
+        "key": "preguntasDone",
+        "value": 500,
+        "type":"General"
+    },
+    "preguntasDone1000":{
+        "id": "preguntasDone1000",
+        "description": "Realiza 1000 preguntas de tests (cuenta tanto en \"Test de Hoy\" como en \"Online\").",
+        "stars":3,
+        "name": "Un mol de preguntas (difícil)",
+        "key": "preguntasDone",
+        "value": 1000,
+        "type":"General"
+    },
+    "onlineDone1":{
+        "id": "onlineDone1",
+        "description": "Realiza 1 test en \"Online\".",
+        "stars":1,
+        "name": "\"Interacción\" social (fácil)",
+        "key": "onlineDone",
+        "value": 1,
+        "type":"Online"
+    },
+    "onlineDone10":{
+        "id": "onlineDone10",
+        "description": "Realiza 10 tests \"Online\".",
+        "stars":2,
+        "name": "\"Interacción\" social (medio)",
+        "key": "onlineDone",
+        "value": 10,
+        "type":"Online"
+    },
+    "onlineDone50":{
+        "id": "onlineDone50",
+        "description": "Realiza 50 tests \"Online\".",
+        "stars":3,
+        "name": "\"Interacción\" social (difícil)",
+        "key": "onlineDone",
+        "value": 50,
+        "type":"Online"
+    },
+    "testDone10":{
+        "id": "testDone10",
+        "description": "Realiza 10 tests.",
+        "stars":1,
+        "name": "Téstate (fácil)",
+        "key": "onlineDone",
+        "value": 10,
+        "type":"General"
+    },
+    "testDone50":{
+        "id": "testDone50",
+        "description": "Realiza 50 tests.",
+        "stars":2,
+        "name": "Téstate (medio)",
+        "key": "onlineDone",
+        "value": 50,
+        "type":"General"
+    },
+    "testDone100":{
+        "id": "testDone100",
+        "description": "Realiza 100 tests.",
+        "stars":3,
+        "name": "Téstate (difícil)",
+        "key": "onlineDone",
+        "value": 100,
+        "type":"General"
+    },
+    "createGroup":{
+        "id": "createGroup",
+        "description": "Crea un grupo \"Online\".",
+        "stars": 1,
+        "name": "Crea un grupo",
+        "key": "groupsCreated",
+        "value": 1,
+        "type":"Online"
+    },
+    "joinGroup":{
+        "id": "joinGroup",
+        "description": "Únete a un grupo \"Online\".",
+        "stars": 1,
+        "name": "Únete a un grupo",
+        "key": "groupsJoined",
+        "value": 1,
+        "type":"Online"
+    },
+    "executeCommand":{
+        "id": "executeCommand",
+        "description": "Ejecuta un comando válido.",
+        "stars": 1,
+        "name": "Únete a un grupo",
+        "key": "commandsExecuted",
+        "value": 1,
+        "type":"General"
+    }
+
+}

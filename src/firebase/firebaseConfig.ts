@@ -2,6 +2,7 @@ import admin from 'firebase-admin'
 import { getDatabase } from 'firebase-admin/database'
 import { getAuth } from 'firebase-admin/auth'
 import { getMessaging } from 'firebase-admin/messaging'
+import { getStorage } from 'firebase-admin/storage'
 import { config } from 'dotenv';
 import { ExtendedServiceAccount } from '../interfaces/firebase';
 config();
@@ -37,6 +38,7 @@ const serviceAccountAdmin:ExtendedServiceAccount = {
 export const mainApp = admin.initializeApp({
   credential: admin.credential.cert(serviceAccountMain),
   databaseURL: process.env.database_main,
+  storageBucket: process.env.storage_main
 }, 'main');
 
 export const adminApp = admin.initializeApp({
@@ -48,4 +50,5 @@ export const mainDB = getDatabase(mainApp);
 export const adminDB = getDatabase(adminApp);
 
 export const mainAuth = getAuth(mainApp);
-export const mainMsg = getMessaging(mainApp)
+export const mainMsg = getMessaging(mainApp);
+export const mainBucket= getStorage(mainApp).bucket();

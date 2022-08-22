@@ -24,16 +24,16 @@ const MIN_TO_MS = 60000; // mins to milliseconds
  * 
  * @param {Function} reader 
  */
-const readCache = (reader:(path:string) => Promise<[any, Error|undefined]>) =>{
+const readCache = (reader:(path:string, ...params:any[]) => Promise<[any, Error|undefined]>) =>{
     const cache:Cache = {};
     /**
      * @param {string} path database path
      * @param {number} cacheTimer time in mins to expire cache data, 15 mins as default
      * @returns {Promise<[any, Error|undefined]>}
      */
-    return async (path:string, cacheTimer = 15) =>{
+    return async (path:string, cacheTimer = 15, ...params:any[]) =>{
         if(cache[path] !== undefined && cache[path].time + cacheTimer * MIN_TO_MS > Date.now()) return cache[path].data;
-        const data = await reader(path);
+        const data = await reader(path, ...params);
         cache[path] = {data, time: Date.now()};
         return data;
     }
@@ -69,5 +69,27 @@ const inDDBB = (database:Database) =>{
         }
     }
 }
-
+const addToDDBB = (database:Database) =>{
+    return async (path:string, add:number = 1) =>{
+        return database.ref(path).transaction((value:number|undefined) =>{
+            if(value === undefined) return add;
+            return value + add;
+        })
+    }
+}
+const queryChildEqualTo = (database:Database) =>{
+    return async (path:string, child:string, equalTo:any):Promise<[any, Error|undefined]> =>{
+        try{
+            const snap = await database.ref(path).orderByChild(child)
+                .equalTo(equalTo).once("value");
+            return [snap.val(), undefined]
+        }catch(error){
+            if(!(error instanceof Error)) return [undefined, undefined]
+            return [undefined, error]
+        }
+    }
+}
+export const filterAdmins =  readCache((path:string) => queryChildEqualTo(mainDB)(path, "admin", false));
+export const queryChildEqualToMain =  queryChildEqualTo(mainDB);
 export const inAdmin =  inDDBB(adminDB);
+export const addToMain = addToDDBB(mainDB);
