@@ -13,20 +13,20 @@ const serviceAccountMain:ExtendedServiceAccount = {
   type: process.env.type_main,
   project_id: process.env.project_id_main,
   private_key_id: process.env.private_key_id_main,
-  private_key: process.env.private_key_main,
+  private_key: process.env.private_key_main?.replace(/\\n/gm, "\n"),
   client_email: process.env.client_email_main,
   client_id: process.env.client_id_main,
   auth_uri: process.env.auth_uri_main,
   token_uri: process.env.token_uri_main,
   auth_provider_x509_cert_url: process.env.auth_provider_x509_cert_url_main,
-  client_x509_cert_url: process.env.client_x509_cert_url_mai!,
+  client_x509_cert_url: process.env.client_x509_cert_url_main,
 };
 
 const serviceAccountAdmin:ExtendedServiceAccount = {
   type: process.env.type_admin,
   project_id: process.env.project_id_admin,
   private_key_id: process.env.private_key_id_admin,
-  private_key: process.env.private_key_admin,
+  private_key: process.env.private_key_admin?.replace(/\\n/gm, "\n"),
   client_email: process.env.client_email_admin,
   client_id: process.env.client_id_admin,
   auth_uri: process.env.auth_uri_admin,

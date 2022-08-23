@@ -5,7 +5,12 @@
   "main": "build/server.js",
   "scripts": {
     "start": "ts-node-dev src/server.ts",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "tsc --build"
+  },
+  "engines" : { 
+    "npm" : ">=8.5.0",
+    "node" : ">=16.14.2"
   },
   "repository": {
     "type": "git",
