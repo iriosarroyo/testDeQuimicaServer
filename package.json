@@ -1,6 +1,6 @@
 {
   "name": "testdequimicaserver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server for test de química",
   "main": "build/server.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc --build"
   },
-  "engines" : { 
-    "npm" : ">=8.5.0",
-    "node" : ">=16.14.2"
+  "engines": {
+    "npm": ">=8.5.0",
+    "node": ">=16.14.2"
   },
   "repository": {
     "type": "git",
