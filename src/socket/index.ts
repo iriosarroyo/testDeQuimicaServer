@@ -6,12 +6,24 @@ import { manageToken, sendNotification } from "../firebase/messaging";
 import { Topics } from "../interfaces/firebase";
 import logros from "../data/logros.json"
 import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renameFolder } from "../firebase/storage";
+import getUid from "../tools/uid";
 
+const peopleConnected:{[k:string]:string[]} = {};
 
+const connect = (uid:string, idConnection:string) =>{
+    if(peopleConnected[uid] === undefined) {
+        peopleConnected[uid] = [idConnection];
+        writeAdmin(`users/${uid}/connected`, true);
+    }
+    else peopleConnected[uid] = [...peopleConnected[uid], idConnection]
+}
 
-const disconnect = (uid:string) =>{
-    writeAdmin(`users/${uid}/connected`, false);
-    writeAdmin(`users/${uid}/lastConnection`, Date.now());
+const disconnect = (uid:string, idConnection:string) =>{
+    peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
+    if(peopleConnected[uid] === undefined || peopleConnected[uid].length === 0){
+        writeAdmin(`users/${uid}/connected`, false);
+        writeAdmin(`users/${uid}/lastConnection`, Date.now());
+    }
 }
 
 const listenerWithUid = (socket:Socket, listener:string, cb:Function) =>{
@@ -23,8 +35,9 @@ export default async (socket:Socket) => {
     const { tokenId } = socket.handshake.auth
     const uid = await uidVerifiedUser(tokenId);
     if(uid === undefined) return socket.disconnect(true);
-    writeAdmin(`users/${uid}/connected`, true);
-    socket.on("disconnect", () => disconnect(uid))
+    const idConnection = getUid();
+    connect(uid, idConnection);
+    socket.on("disconnect", () => disconnect(uid, idConnection))
     socket.on("ddbb:history", async() =>{
         socket.emit("ddbb:history", await readMainCache(`stats/${uid}/history`))
     })
