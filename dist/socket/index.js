@@ -99,7 +99,20 @@ exports.default = async (socket) => {
         return socket.emit("main:getLogrosFromUser", logros ?? {});
     });
     listenerWithUid(socket, "user:isAdmin", () => (0, authentification_1.isAdminUid)(uid));
-    if (!await (0, authentification_1.isAdminUid)(uid))
+    const isAdmin = await (0, authentification_1.isAdminUid)(uid);
+    listenerWithUid(socket, "main:deleteUserFromDDBB", async (id) => {
+        if (id !== uid && !isAdmin)
+            return;
+        const result = await (0, DDBB_1.writeMain)(`users/${uid}`, null);
+        return result === undefined;
+    });
+    listenerWithUid(socket, "main:isUsernameInDDBB", async (username) => {
+        const [users, error] = await (0, DDBB_1.readMain)("users");
+        if (error)
+            return true;
+        return Object.values(users).some(x => x.username === username);
+    });
+    if (!isAdmin)
         return undefined;
     socket.on("firebase:messaging:notification", async (title, body, topic) => {
         try {
