@@ -93,7 +93,18 @@ export default async (socket:Socket) => {
         return socket.emit("main:getLogrosFromUser", logros ?? {})
     })
     listenerWithUid(socket, "user:isAdmin", () => isAdminUid(uid))
-    if(!await isAdminUid(uid)) return undefined;
+    const isAdmin = await isAdminUid(uid);
+    listenerWithUid(socket, "main:deleteUserFromDDBB", async(id:string) =>{
+        if(id !== uid && !isAdmin) return;
+        const result = await writeMain(`users/${uid}`, null);
+        return result === undefined;
+    });
+    listenerWithUid(socket, "main:isUsernameInDDBB", async(username:string) =>{
+        const [users, error] = await readMain("users");
+        if(error) return true;
+        return Object.values(users as {[k:string]:{username:string}}).some(x => x.username === username);
+    })
+    if(!isAdmin) return undefined;
     socket.on("firebase:messaging:notification", async(title:string, body:string, topic:Topics) =>{
         try{
             await sendNotification(title, body, topic);
@@ -157,6 +168,8 @@ export default async (socket:Socket) => {
         readMain("preguntasTestDeQuimica").then(x => x[0]),
         readMain("respuestas").then(x => x[0]),
     ]));
+
+    
     listenerWithUid(socket, "main:mantenimiento",
      (state:boolean) =>writeMain('mantenimiento', state))
 }

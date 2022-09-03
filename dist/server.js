@@ -69,7 +69,7 @@ fastify.get("/welcome", async (req, res) => {
 fastify.ready().then(() => {
     fastify.io.on("connection", socket_1.default);
 });
-fastify.listen({ port: parseInt(process.env.PORT ?? '3001') }, (err, address) => {
+fastify.listen({ port: parseInt(process.env.PORT ?? '3001')}, (err, address) => {
     if (err) {
         fastify.log.error(err);
         process.exit(1);

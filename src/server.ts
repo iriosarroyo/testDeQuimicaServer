@@ -12,7 +12,8 @@ fastify.register(fastifyIO, {cors:{
         "https://testdequimica-bcf90.web.app",
         "https://testdequimica-bcf90.firebaseapp.com",
         "https://test-de-quimica.web.app",
-        "https://test-de-quimica.firebaseapp.com"
+        "https://test-de-quimica.firebaseapp.com",
+        "http://localhost:3000"
     ]
 }})
 fastify.register(import("./stats"), {prefix:"users"})
@@ -41,11 +42,15 @@ fastify.get("/welcome", async (req, res) =>{
     return res.send(true);
 })
 
+fastify.get("/inicio", async (req, res) =>{
+    return true
+})
+
 fastify.ready().then(()=>{
     fastify.io.on("connection", socket)
 })
 
-fastify.listen({port:parseInt(process.env.PORT ?? '3001')}, (err, address) =>{
+fastify.listen({port:parseInt(process.env.PORT ?? '3001'), host:'0.0.0.0'}, (err, address) =>{
     if(err){
         fastify.log.error(err);
         process.exit(1)
