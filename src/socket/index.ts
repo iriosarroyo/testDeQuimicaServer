@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { isAdminUid, uidVerifiedUser } from "../firebase/authentification";
+import { getAllUsersListener, isAdminUid, uidVerifiedUser } from "../firebase/authentification";
 import { addToMain, filterAdmins, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
 import { mainDB } from "../firebase/firebaseConfig";
 import { manageToken, sendNotification } from "../firebase/messaging";
@@ -13,7 +13,7 @@ const peopleConnected:{[k:string]:string[]} = {};
 const connect = (uid:string, idConnection:string) =>{
     if(peopleConnected[uid] === undefined) {
         peopleConnected[uid] = [idConnection];
-        writeAdmin(`users/${uid}/connected`, true);
+        writeAdmin(`users/${uid}/connected`, true).then(console.log);
     }
     else peopleConnected[uid] = [...peopleConnected[uid], idConnection]
 }
@@ -33,11 +33,14 @@ const listenerWithUid = (socket:Socket, listener:string, cb:Function) =>{
 }
 export default async (socket:Socket) => {
     const { tokenId } = socket.handshake.auth
+    console.log("ok")
     const uid = await uidVerifiedUser(tokenId);
     if(uid === undefined) return socket.disconnect(true);
     const idConnection = getUid();
     connect(uid, idConnection);
+    console.log(peopleConnected)
     socket.on("disconnect", () => disconnect(uid, idConnection))
+    socket.on("disconnectUser", () => socket.disconnect()) // just for testing purpose
     socket.on("ddbb:history", async() =>{
         socket.emit("ddbb:history", await readMainCache(`stats/${uid}/history`))
     })
@@ -169,7 +172,13 @@ export default async (socket:Socket) => {
         readMain("respuestas").then(x => x[0]),
     ]));
 
+    listenerWithUid(socket, "users:editData", (uid:string, val:string, path:string) =>{
+        return writeMain(`users/${uid}/${path}`, val)
+    })
+
     
     listenerWithUid(socket, "main:mantenimiento",
      (state:boolean) =>writeMain('mantenimiento', state))
+
+    socket.on("allUsersData", (uid:string) => getAllUsersListener(socket, uid))
 }
