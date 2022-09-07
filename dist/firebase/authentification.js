@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAdmin = exports.isAdminUid = exports.uidVerifiedUser = void 0;
+exports.getAllUsersListener = exports.isAdmin = exports.isAdminUid = exports.uidVerifiedUser = void 0;
 const DDBB_1 = require("./DDBB");
 const firebaseConfig_1 = require("./firebaseConfig");
 /**
@@ -37,3 +37,37 @@ const isAdmin = async (tokenId) => {
     return (0, exports.isAdminUid)(uid);
 };
 exports.isAdmin = isAdmin;
+const getAllUsersListener = (socket, uid) => {
+    let usersMain = undefined;
+    let usersAdmin = undefined;
+    const returnUsers = async () => {
+        if (usersAdmin === undefined || usersMain === undefined)
+            return;
+        const usersAuth = await firebaseConfig_1.mainAuth.listUsers();
+        const usersEntries = usersAuth.users.map(user => {
+            const { uid } = user;
+            if (usersMain?.[uid] === undefined || usersAdmin?.[uid] === undefined)
+                return [uid, undefined];
+            return [uid, { ...user, userDDBB: {
+                        ...usersMain[uid],
+                        ...usersAdmin[uid]
+                    } }];
+        }).filter(elem => elem[1] !== undefined);
+        socket.emit(`allUsersData:${uid}`, Object.fromEntries(usersEntries));
+    };
+    const onMainChange = (data) => {
+        usersMain = data.val();
+        returnUsers();
+    };
+    const onAdminChange = (data) => {
+        usersAdmin = data.val();
+        returnUsers();
+    };
+    firebaseConfig_1.mainDB.ref('users').on("value", onMainChange);
+    firebaseConfig_1.adminDB.ref('users').on("value", onAdminChange);
+    socket.once(`disconnect:${uid}`, () => {
+        firebaseConfig_1.mainDB.ref('users').off("value", onMainChange);
+        firebaseConfig_1.mainDB.ref('users').off("value", onAdminChange);
+    });
+};
+exports.getAllUsersListener = getAllUsersListener;

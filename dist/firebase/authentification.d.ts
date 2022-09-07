@@ -1,3 +1,4 @@
+import { Socket } from "socket.io";
 /**
  *
  * @param {string} tokenId id token from firebase user.
@@ -11,3 +12,4 @@ export declare const isAdminUid: (uid: string) => Promise<boolean>;
  * @returns {Promise<boolean>} if it is an admin or not.
  */
 export declare const isAdmin: (tokenId: string) => Promise<boolean>;
+export declare const getAllUsersListener: (socket: Socket, uid: string) => void;

@@ -14,7 +14,7 @@ const peopleConnected = {};
 const connect = (uid, idConnection) => {
     if (peopleConnected[uid] === undefined) {
         peopleConnected[uid] = [idConnection];
-        (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true);
+        (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true).then(console.log);
     }
     else
         peopleConnected[uid] = [...peopleConnected[uid], idConnection];
@@ -33,12 +33,15 @@ const listenerWithUid = (socket, listener, cb) => {
 };
 exports.default = async (socket) => {
     const { tokenId } = socket.handshake.auth;
+    console.log("ok");
     const uid = await (0, authentification_1.uidVerifiedUser)(tokenId);
     if (uid === undefined)
         return socket.disconnect(true);
     const idConnection = (0, uid_1.default)();
     connect(uid, idConnection);
+    console.log(peopleConnected);
     socket.on("disconnect", () => disconnect(uid, idConnection));
+    socket.on("disconnectUser", () => socket.disconnect()); // just for testing purpose
     socket.on("ddbb:history", async () => {
         socket.emit("ddbb:history", await (0, DDBB_1.readMainCache)(`stats/${uid}/history`));
     });
@@ -184,5 +187,9 @@ exports.default = async (socket) => {
         (0, DDBB_1.readMain)("preguntasTestDeQuimica").then(x => x[0]),
         (0, DDBB_1.readMain)("respuestas").then(x => x[0]),
     ]));
+    listenerWithUid(socket, "users:editData", (uid, val, path) => {
+        return (0, DDBB_1.writeMain)(`users/${uid}/${path}`, val);
+    });
     listenerWithUid(socket, "main:mantenimiento", (state) => (0, DDBB_1.writeMain)('mantenimiento', state));
+    socket.on("allUsersData", (uid) => (0, authentification_1.getAllUsersListener)(socket, uid));
 };
