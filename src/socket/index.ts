@@ -8,19 +8,20 @@ import logros from "../data/logros.json"
 import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renameFolder } from "../firebase/storage";
 import getUid from "../tools/uid";
 
-const peopleConnected:{[k:string]:string[]} = {};
+const peopleConnected:{[k:string]:string[]|undefined} = {};
 
 const connect = (uid:string, idConnection:string) =>{
     if(peopleConnected[uid] === undefined) {
         peopleConnected[uid] = [idConnection];
         writeAdmin(`users/${uid}/connected`, true).then(console.log);
     }
-    else peopleConnected[uid] = [...peopleConnected[uid], idConnection]
+    else peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection]
 }
 
 const disconnect = (uid:string, idConnection:string) =>{
     peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
-    if(peopleConnected[uid] === undefined || peopleConnected[uid].length === 0){
+    if(peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0){
+        peopleConnected[uid] = undefined;
         writeAdmin(`users/${uid}/connected`, false);
         writeAdmin(`users/${uid}/lastConnection`, Date.now());
     }
@@ -33,12 +34,10 @@ const listenerWithUid = (socket:Socket, listener:string, cb:Function) =>{
 }
 export default async (socket:Socket) => {
     const { tokenId } = socket.handshake.auth
-    console.log("ok")
     const uid = await uidVerifiedUser(tokenId);
     if(uid === undefined) return socket.disconnect(true);
     const idConnection = getUid();
     connect(uid, idConnection);
-    console.log(peopleConnected)
     socket.on("disconnect", () => disconnect(uid, idConnection))
     socket.on("disconnectUser", () => socket.disconnect()) // just for testing purpose
     socket.on("ddbb:history", async() =>{
@@ -63,6 +62,17 @@ export default async (socket:Socket) => {
                     currStreak: newStreak,
                     lastDay: extraInfo
                 }
+            });
+        }else if(logroKey === "numberOf10"){
+            const {value, data} = logroData ?? {value: 0, data:{}}
+            val = value;
+            const puntsTemas = extraInfo
+            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || !!data[k]]))
+            const newData = Object.fromEntries(hasEverHadA10);
+            newValue = hasEverHadA10.filter(([, v]) => v).length
+            result = await writeMain(`users/${uid}/logros/${logroKey}`, {
+                value: newValue,
+                data: newData
             });
         }else{
             if(logroKey === "preguntasDone" && typeof extraInfo !== "number") return;
