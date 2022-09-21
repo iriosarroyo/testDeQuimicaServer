@@ -17,11 +17,12 @@ const connect = (uid, idConnection) => {
         (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true).then(console.log);
     }
     else
-        peopleConnected[uid] = [...peopleConnected[uid], idConnection];
+        peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection];
 };
 const disconnect = (uid, idConnection) => {
     peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
-    if (peopleConnected[uid] === undefined || peopleConnected[uid].length === 0) {
+    if (peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0) {
+        peopleConnected[uid] = undefined;
         (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, false);
         (0, DDBB_1.writeAdmin)(`users/${uid}/lastConnection`, Date.now());
     }
@@ -33,13 +34,11 @@ const listenerWithUid = (socket, listener, cb) => {
 };
 exports.default = async (socket) => {
     const { tokenId } = socket.handshake.auth;
-    console.log("ok");
     const uid = await (0, authentification_1.uidVerifiedUser)(tokenId);
     if (uid === undefined)
         return socket.disconnect(true);
     const idConnection = (0, uid_1.default)();
     connect(uid, idConnection);
-    console.log(peopleConnected);
     socket.on("disconnect", () => disconnect(uid, idConnection));
     socket.on("disconnectUser", () => socket.disconnect()); // just for testing purpose
     socket.on("ddbb:history", async () => {
@@ -65,6 +64,18 @@ exports.default = async (socket) => {
                     currStreak: newStreak,
                     lastDay: extraInfo
                 }
+            });
+        }
+        else if (logroKey === "numberOf10") {
+            const { value, data } = logroData ?? { value: 0, data: {} };
+            val = value;
+            const puntsTemas = extraInfo;
+            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || !!data[k]]));
+            const newData = Object.fromEntries(hasEverHadA10);
+            newValue = hasEverHadA10.filter(([, v]) => v).length;
+            result = await (0, DDBB_1.writeMain)(`users/${uid}/logros/${logroKey}`, {
+                value: newValue,
+                data: newData
             });
         }
         else {
