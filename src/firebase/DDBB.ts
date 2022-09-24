@@ -1,4 +1,4 @@
-import { Database } from "firebase-admin/database";
+import { Database, Reference } from "firebase-admin/database";
 import { Cache } from "../interfaces/firebase";
 import { adminDB, mainDB } from "./firebaseConfig"
 
@@ -57,6 +57,23 @@ const writeDDBB = (database:Database) =>{
 
 export const writeMain = writeDDBB(mainDB);
 export const writeAdmin = writeDDBB(adminDB);
+
+const pushDDBB = (database:Database) =>{
+    return async (path:string, value:any):Promise<[Reference|undefined,Error|undefined]> => {
+        try{
+            const result = await database.ref(path).push(value);
+            return [result, undefined]
+        }catch(error){
+            if((error instanceof Error)) return [undefined, error]
+        }
+        return [undefined, undefined]
+    }
+}
+
+
+
+export const pushMain = pushDDBB(mainDB);
+export const pushAdmin = pushDDBB(adminDB);
 
 const inDDBB = (database:Database) =>{
     return async (path:string):Promise<[boolean|undefined, Error|undefined]> =>{

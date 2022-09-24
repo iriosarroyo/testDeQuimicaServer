@@ -10,11 +10,14 @@ const messaging_1 = require("../firebase/messaging");
 const logros_json_1 = __importDefault(require("../data/logros.json"));
 const storage_1 = require("../firebase/storage");
 const uid_1 = __importDefault(require("../tools/uid"));
+const stats_1 = __importDefault(require("../stats"));
 const peopleConnected = {};
+const connectionStart = {};
 const connect = (uid, idConnection) => {
     if (peopleConnected[uid] === undefined) {
         peopleConnected[uid] = [idConnection];
-        (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true).then(console.log);
+        connectionStart[uid] = Date.now();
+        (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true);
     }
     else
         peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection];
@@ -23,6 +26,12 @@ const disconnect = (uid, idConnection) => {
     peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
     if (peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0) {
         peopleConnected[uid] = undefined;
+        const timeConnected = Date.now() - (connectionStart[uid] ?? Date.now());
+        (0, DDBB_1.pushAdmin)('connectionTime', {
+            date: connectionStart[uid],
+            timeConnected,
+            uid
+        });
         (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, false);
         (0, DDBB_1.writeAdmin)(`users/${uid}/lastConnection`, Date.now());
     }
@@ -113,6 +122,7 @@ exports.default = async (socket) => {
         return socket.emit("main:getLogrosFromUser", logros ?? {});
     });
     listenerWithUid(socket, "user:isAdmin", () => (0, authentification_1.isAdminUid)(uid));
+    listenerWithUid(socket, "sendStatsForAdmin", (data) => (0, stats_1.default)(data, uid));
     const isAdmin = await (0, authentification_1.isAdminUid)(uid);
     listenerWithUid(socket, "main:deleteUserFromDDBB", async (id) => {
         if (id !== uid && !isAdmin)

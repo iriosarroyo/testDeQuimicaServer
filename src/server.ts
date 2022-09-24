@@ -16,7 +16,6 @@ fastify.register(fastifyIO, {cors:{
         "http://localhost:3000"
     ]
 }})
-fastify.register(import("./stats"), {prefix:"users"})
 
 const getWelcomeOpts = {schema:{
     body:{

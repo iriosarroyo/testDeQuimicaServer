@@ -1,9 +1,12 @@
+import { Reference } from "firebase-admin/database";
 export declare const readMain: (path: string) => Promise<[any, Error | undefined]>;
 export declare const readAdmin: (path: string) => Promise<[any, Error | undefined]>;
 export declare const readMainCache: (path: string, cacheTimer?: number, ...params: any[]) => Promise<[any, Error | undefined]>;
 export declare const readAdminCache: (path: string, cacheTimer?: number, ...params: any[]) => Promise<[any, Error | undefined]>;
 export declare const writeMain: (path: string, value: any) => Promise<Error | undefined>;
 export declare const writeAdmin: (path: string, value: any) => Promise<Error | undefined>;
+export declare const pushMain: (path: string, value: any) => Promise<[Reference | undefined, Error | undefined]>;
+export declare const pushAdmin: (path: string, value: any) => Promise<[Reference | undefined, Error | undefined]>;
 export declare const filterAdmins: (path: string, cacheTimer?: number, ...params: any[]) => Promise<[any, Error | undefined]>;
 export declare const queryChildEqualToMain: (path: string, child: string, equalTo: any) => Promise<[any, Error | undefined]>;
 export declare const inAdmin: (path: string) => Promise<[boolean | undefined, Error | undefined]>;

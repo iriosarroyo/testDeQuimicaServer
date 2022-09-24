@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
+exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
 const firebaseConfig_1 = require("./firebaseConfig");
 const readDDBB = (database) => {
     return async (path) => {
@@ -53,6 +53,21 @@ const writeDDBB = (database) => {
 };
 exports.writeMain = writeDDBB(firebaseConfig_1.mainDB);
 exports.writeAdmin = writeDDBB(firebaseConfig_1.adminDB);
+const pushDDBB = (database) => {
+    return async (path, value) => {
+        try {
+            const result = await database.ref(path).push(value);
+            return [result, undefined];
+        }
+        catch (error) {
+            if ((error instanceof Error))
+                return [undefined, error];
+        }
+        return [undefined, undefined];
+    };
+};
+exports.pushMain = pushDDBB(firebaseConfig_1.mainDB);
+exports.pushAdmin = pushDDBB(firebaseConfig_1.adminDB);
 const inDDBB = (database) => {
     return async (path) => {
         try {

@@ -1,19 +1,22 @@
 import { Socket } from "socket.io";
 import { getAllUsersListener, isAdminUid, uidVerifiedUser } from "../firebase/authentification";
-import { addToMain, filterAdmins, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
+import { addToMain, filterAdmins, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
 import { mainDB } from "../firebase/firebaseConfig";
 import { manageToken, sendNotification } from "../firebase/messaging";
 import { Topics } from "../interfaces/firebase";
 import logros from "../data/logros.json"
 import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renameFolder } from "../firebase/storage";
 import getUid from "../tools/uid";
+import saveStats from "../stats";
 
 const peopleConnected:{[k:string]:string[]|undefined} = {};
+const connectionStart:{[k:string]:number|undefined} = {}
 
 const connect = (uid:string, idConnection:string) =>{
     if(peopleConnected[uid] === undefined) {
         peopleConnected[uid] = [idConnection];
-        writeAdmin(`users/${uid}/connected`, true).then(console.log);
+        connectionStart[uid] = Date.now();
+        writeAdmin(`users/${uid}/connected`, true);
     }
     else peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection]
 }
@@ -22,6 +25,12 @@ const disconnect = (uid:string, idConnection:string) =>{
     peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
     if(peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0){
         peopleConnected[uid] = undefined;
+        const timeConnected = Date.now() - (connectionStart[uid] ?? Date.now())
+        pushAdmin('connectionTime', {
+            date: connectionStart[uid],
+            timeConnected,
+            uid
+        })
         writeAdmin(`users/${uid}/connected`, false);
         writeAdmin(`users/${uid}/lastConnection`, Date.now());
     }
@@ -106,6 +115,7 @@ export default async (socket:Socket) => {
         return socket.emit("main:getLogrosFromUser", logros ?? {})
     })
     listenerWithUid(socket, "user:isAdmin", () => isAdminUid(uid))
+    listenerWithUid(socket, "sendStatsForAdmin", (data:Object) => saveStats(data, uid))
     const isAdmin = await isAdminUid(uid);
     listenerWithUid(socket, "main:deleteUserFromDDBB", async(id:string) =>{
         if(id !== uid && !isAdmin) return;
