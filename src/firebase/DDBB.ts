@@ -95,10 +95,12 @@ const addToDDBB = (database:Database) =>{
     }
 }
 const queryChildEqualTo = (database:Database) =>{
-    return async (path:string, child:string, equalTo:any):Promise<[any, Error|undefined]> =>{
+    return async (path:string, child:string, equalTo:any, endAt?:any):Promise<[any, Error|undefined]> =>{
         try{
-            const snap = await database.ref(path).orderByChild(child)
-                .equalTo(equalTo).once("value");
+            let filter = database.ref(path).orderByChild(child)
+            if(endAt !== undefined) filter = filter.startAt(equalTo).endAt(endAt)
+            else filter = filter.equalTo(equalTo)
+            const snap = await filter.once("value");
             return [snap.val(), undefined]
         }catch(error){
             if(!(error instanceof Error)) return [undefined, undefined]
@@ -106,7 +108,8 @@ const queryChildEqualTo = (database:Database) =>{
         }
     }
 }
-export const filterAdmins =  readCache((path:string) => queryChildEqualTo(mainDB)(path, "admin", false));
+export const filterAdmins =  readCache((path:string) => queryChildEqualTo(mainDB)(path, "admin", null, false));
 export const queryChildEqualToMain =  queryChildEqualTo(mainDB);
 export const inAdmin =  inDDBB(adminDB);
 export const addToMain = addToDDBB(mainDB);
+export const getUsers = ():Promise<{[k:string]:{name:string, surname:string, admin:boolean}}> => readMain("users").then(x => x[0])

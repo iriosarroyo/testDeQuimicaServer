@@ -8,6 +8,13 @@ export declare const writeAdmin: (path: string, value: any) => Promise<Error | u
 export declare const pushMain: (path: string, value: any) => Promise<[Reference | undefined, Error | undefined]>;
 export declare const pushAdmin: (path: string, value: any) => Promise<[Reference | undefined, Error | undefined]>;
 export declare const filterAdmins: (path: string, cacheTimer?: number, ...params: any[]) => Promise<[any, Error | undefined]>;
-export declare const queryChildEqualToMain: (path: string, child: string, equalTo: any) => Promise<[any, Error | undefined]>;
+export declare const queryChildEqualToMain: (path: string, child: string, equalTo: any, endAt?: any) => Promise<[any, Error | undefined]>;
 export declare const inAdmin: (path: string) => Promise<[boolean | undefined, Error | undefined]>;
 export declare const addToMain: (path: string, add?: number) => Promise<import("@firebase/database-types").TransactionResult>;
+export declare const getUsers: () => Promise<{
+    [k: string]: {
+        name: string;
+        surname: string;
+        admin: boolean;
+    };
+}>;

@@ -7,7 +7,8 @@ import { Topics } from "../interfaces/firebase";
 import logros from "../data/logros.json"
 import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renameFolder } from "../firebase/storage";
 import getUid from "../tools/uid";
-import saveStats from "../stats";
+import saveStats, { getAllStats } from "../stats";
+import { StatsData } from "../interfaces/stats";
 
 const peopleConnected:{[k:string]:string[]|undefined} = {};
 const connectionStart:{[k:string]:number|undefined} = {}
@@ -55,6 +56,7 @@ export default async (socket:Socket) => {
     socket.on("firebase:messaging:token", (token:string, topics:Topics[]) =>{
         manageToken(token, topics);
     })
+    listenerWithUid(socket, "stats:userStats", (start?:number, end?:number) => getAllStats(start, end, uid))
     socket.on("main:updateLogros", async (logroKey:string, logroData:{value:number, data?:any}|undefined, extraInfo:any) =>{
         let result, newValue:number, val:number;
         if(logroKey === "testDeHoySeguidos"){
@@ -115,7 +117,7 @@ export default async (socket:Socket) => {
         return socket.emit("main:getLogrosFromUser", logros ?? {})
     })
     listenerWithUid(socket, "user:isAdmin", () => isAdminUid(uid))
-    listenerWithUid(socket, "sendStatsForAdmin", (data:Object) => saveStats(data, uid))
+    listenerWithUid(socket, "sendStatsForAdmin", (data:StatsData) => saveStats(data, uid))
     const isAdmin = await isAdminUid(uid);
     listenerWithUid(socket, "main:deleteUserFromDDBB", async(id:string) =>{
         if(id !== uid && !isAdmin) return;
@@ -201,4 +203,5 @@ export default async (socket:Socket) => {
      (state:boolean) =>writeMain('mantenimiento', state))
 
     socket.on("allUsersData", (uid:string) => getAllUsersListener(socket, uid))
+    listenerWithUid(socket, "stats:allStats", (start?:number, end?:number, id?:string) => getAllStats(start, end, id))
 }

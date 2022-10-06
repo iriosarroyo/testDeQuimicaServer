@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
+exports.getUsers = exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
 const firebaseConfig_1 = require("./firebaseConfig");
 const readDDBB = (database) => {
     return async (path) => {
@@ -91,10 +91,14 @@ const addToDDBB = (database) => {
     };
 };
 const queryChildEqualTo = (database) => {
-    return async (path, child, equalTo) => {
+    return async (path, child, equalTo, endAt) => {
         try {
-            const snap = await database.ref(path).orderByChild(child)
-                .equalTo(equalTo).once("value");
+            let filter = database.ref(path).orderByChild(child);
+            if (endAt !== undefined)
+                filter = filter.startAt(equalTo).endAt(endAt);
+            else
+                filter = filter.equalTo(equalTo);
+            const snap = await filter.once("value");
             return [snap.val(), undefined];
         }
         catch (error) {
@@ -104,7 +108,9 @@ const queryChildEqualTo = (database) => {
         }
     };
 };
-exports.filterAdmins = readCache((path) => queryChildEqualTo(firebaseConfig_1.mainDB)(path, "admin", false));
+exports.filterAdmins = readCache((path) => queryChildEqualTo(firebaseConfig_1.mainDB)(path, "admin", null, false));
 exports.queryChildEqualToMain = queryChildEqualTo(firebaseConfig_1.mainDB);
 exports.inAdmin = inDDBB(firebaseConfig_1.adminDB);
 exports.addToMain = addToDDBB(firebaseConfig_1.mainDB);
+const getUsers = () => (0, exports.readMain)("users").then(x => x[0]);
+exports.getUsers = getUsers;
