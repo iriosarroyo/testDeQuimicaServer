@@ -4,7 +4,7 @@ exports.PATHS_SCKT = exports.PATHS_DDBB = void 0;
 exports.PATHS_DDBB = {
     datosCuriosos: 'inicio/datosCuriosos',
     activeDatosCuriosos: 'inicio/activeDatosCuriosos',
-    preguntas: 'preguntasTestDeQuimica',
+    preguntas: 'preguntas',
     respuestas: 'respuestas',
 };
 exports.PATHS_SCKT = {
