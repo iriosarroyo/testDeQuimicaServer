@@ -6,6 +6,7 @@ import { Socket } from "socket.io";
  */
 export declare const uidVerifiedUser: (tokenId: string) => Promise<string | undefined>;
 export declare const isAdminUid: (uid: string) => Promise<boolean>;
+export declare const isEditorUid: (uid: string) => Promise<boolean>;
 /**
  *
  * @param {string} tokenId id token from firebase user.

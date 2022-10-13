@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllUsersListener = exports.isAdmin = exports.isAdminUid = exports.uidVerifiedUser = void 0;
+exports.getAllUsersListener = exports.isAdmin = exports.isEditorUid = exports.isAdminUid = exports.uidVerifiedUser = void 0;
 const DDBB_1 = require("./DDBB");
 const firebaseConfig_1 = require("./firebaseConfig");
 /**
@@ -25,6 +25,13 @@ const isAdminUid = async (uid) => {
     return Boolean(isAdministrator);
 };
 exports.isAdminUid = isAdminUid;
+const isEditorUid = async (uid) => {
+    const [isAdministrator, error] = await (0, DDBB_1.readMainCache)(`users/${uid}/editor`);
+    if (error !== undefined)
+        return false;
+    return Boolean(isAdministrator);
+};
+exports.isEditorUid = isEditorUid;
 /**
  *
  * @param {string} tokenId id token from firebase user.

@@ -4,7 +4,8 @@
   "description": "Server for test de química",
   "main": "build/server.js",
   "scripts": {
-    "start": "ts-node-dev src/server.ts",
+    "start": "node dist/server.js",
+    "server": "ts-node-dev src/server.ts",
     "test": "jest",
     "build": "tsc --build"
   },

@@ -42,7 +42,8 @@
         "name": "La fórmula del éxito",
         "key": "formulario",
         "value": 1,
-        "type": "Documentos"
+        "type": "Documentos",
+        "available": ["quimica"]
     },
     "documentosRecursos": {
         "id": "documentosRecursos",
@@ -51,7 +52,8 @@
         "name": "Aprende a aprender",
         "key": "recursos",
         "value": 1,
-        "type": "Documentos"
+        "type": "Documentos",
+        "available": ["quimica"]
     },
     "documentosDescargas1": {
         "id": "documentosDescargas1",
@@ -237,7 +239,7 @@
         "id": "executeCommand",
         "description": "Ejecuta un comando válido.",
         "stars": 1,
-        "name": "Únete a un grupo",
+        "name": "Ejecuta un comando",
         "key": "commandsExecuted",
         "value": 1,
         "type": "General"

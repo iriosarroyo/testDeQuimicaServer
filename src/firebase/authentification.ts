@@ -23,6 +23,12 @@ export const isAdminUid = async (uid:string) => {
     if(error !== undefined) return false;
     return Boolean(isAdministrator);
 }
+
+export const isEditorUid = async (uid:string) => {
+    const [isAdministrator, error] = await readMainCache(`users/${uid}/editor`);
+    if(error !== undefined) return false;
+    return Boolean(isAdministrator);
+}
 /**
  * 
  * @param {string} tokenId id token from firebase user.

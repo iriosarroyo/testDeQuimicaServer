@@ -26,6 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.setGlobalSocket = exports.globalSocket = void 0;
 const authentification_1 = require("../firebase/authentification");
 const DDBB_1 = require("../firebase/DDBB");
 const firebaseConfig_1 = require("../firebase/firebaseConfig");
@@ -34,6 +35,7 @@ const logros_json_1 = __importDefault(require("../data/logros.json"));
 const storage_1 = require("../firebase/storage");
 const uid_1 = __importDefault(require("../tools/uid"));
 const stats_1 = __importStar(require("../stats"));
+const paths_1 = require("../data/paths");
 const peopleConnected = {};
 const connectionStart = {};
 const connect = (uid, idConnection) => {
@@ -61,7 +63,9 @@ const disconnect = (uid, idConnection) => {
 };
 const listenerWithUid = (socket, listener, cb) => {
     socket.on(listener, async (uid, ...params) => {
-        socket.emit(`${listener}:${uid}`, await cb(...params));
+        console.log(uid);
+        const res = await cb(...params);
+        socket.emit(`${listener}:${uid}`, res);
     });
 };
 exports.default = async (socket) => {
@@ -73,14 +77,14 @@ exports.default = async (socket) => {
     connect(uid, idConnection);
     socket.on("disconnect", () => disconnect(uid, idConnection));
     socket.on("disconnectUser", () => socket.disconnect()); // just for testing purpose
-    socket.on("ddbb:history", async () => {
-        socket.emit("ddbb:history", await (0, DDBB_1.readMainCache)(`stats/${uid}/history`));
+    socket.on(paths_1.PATHS_SCKT.ddbbHistory, async () => {
+        socket.emit(paths_1.PATHS_SCKT.ddbbHistory, await (0, DDBB_1.readMainCache)(`stats/${uid}/history`));
     });
-    socket.on("firebase:messaging:token", (token, topics) => {
+    socket.on(paths_1.PATHS_SCKT.messagingToken, (token, topics) => {
         (0, messaging_1.manageToken)(token, topics);
     });
-    listenerWithUid(socket, "stats:userStats", (start, end) => (0, stats_1.getAllStats)(start, end, uid));
-    socket.on("main:updateLogros", async (logroKey, logroData, extraInfo) => {
+    listenerWithUid(socket, paths_1.PATHS_SCKT.userStats, (start, end) => (0, stats_1.getAllStats)(start, end, uid));
+    socket.on(paths_1.PATHS_SCKT.updateLogros, async (logroKey, logroData, extraInfo) => {
         let result, newValue, val;
         if (logroKey === "testDeHoySeguidos") {
             //extraInfo must be todays day in number
@@ -160,6 +164,21 @@ exports.default = async (socket) => {
             return true;
         return Object.values(users).some(x => x.username === username);
     });
+    const isEditor = isAdmin || await (0, authentification_1.isEditorUid)(uid);
+    if (!isEditor)
+        return undefined;
+    socket.on("main:pregunta", async (val) => {
+        const [id, preg] = val;
+        const result = await (0, DDBB_1.writeMain)(`${paths_1.PATHS_DDBB.preguntas}/${id}`, preg);
+        if (result === undefined)
+            socket.emit("main:pregunta", val);
+    });
+    socket.on("main:respuesta", async (val) => {
+        const [id, resp] = val;
+        const result = await (0, DDBB_1.writeMain)(`respuestas/${id}`, resp);
+        if (result === undefined)
+            socket.emit("main:respuesta", val);
+    });
     if (!isAdmin)
         return undefined;
     socket.on("firebase:messaging:notification", async (title, body, topic) => {
@@ -183,7 +202,7 @@ exports.default = async (socket) => {
     });
     socket.on("nextId", async () => {
         try {
-            const num = await firebaseConfig_1.mainDB.ref("preguntasTestDeQuimica").once("value").then(x => x.numChildren()) + 1;
+            const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then(x => x.numChildren()) + 1;
             let id;
             if (num < 10)
                 id = `id000${num}`;
@@ -198,25 +217,13 @@ exports.default = async (socket) => {
         catch { }
     });
     socket.on("numOfPregs", async () => {
-        const num = await firebaseConfig_1.mainDB.ref("preguntasTestDeQuimica").once("value").then(x => x.numChildren());
+        const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then(x => x.numChildren());
         socket.emit("numOfPregs", num);
     });
     socket.on("write:main", async (path, val) => {
         const result = await (0, DDBB_1.writeMain)(path, val);
         if (result === undefined)
             socket.emit("write:main", val);
-    });
-    socket.on("main:pregunta", async (val) => {
-        const [id, preg] = val;
-        const result = await (0, DDBB_1.writeMain)(`preguntasTestDeQuimica/${id}`, preg);
-        if (result === undefined)
-            socket.emit("main:pregunta", val);
-    });
-    socket.on("main:respuesta", async (val) => {
-        const [id, resp] = val;
-        const result = await (0, DDBB_1.writeMain)(`respuestas/${id}`, resp);
-        if (result === undefined)
-            socket.emit("main:respuesta", val);
     });
     socket.on("documents:renameFile", async (path, name) => {
         socket.emit("documents:renameFile", await (0, storage_1.renameFile)(path, name));
@@ -229,7 +236,7 @@ exports.default = async (socket) => {
     listenerWithUid(socket, "documents:deleteFolder", storage_1.deleteFolder);
     listenerWithUid(socket, "documents:deleteFile", storage_1.deleteFile);
     listenerWithUid(socket, "main:allQuestions", () => Promise.all([
-        (0, DDBB_1.readMain)("preguntasTestDeQuimica").then(x => x[0]),
+        (0, DDBB_1.readMain)(paths_1.PATHS_DDBB.preguntas).then(x => x[0]),
         (0, DDBB_1.readMain)("respuestas").then(x => x[0]),
     ]));
     listenerWithUid(socket, "users:editData", (uid, val, path) => {
@@ -238,4 +245,10 @@ exports.default = async (socket) => {
     listenerWithUid(socket, "main:mantenimiento", (state) => (0, DDBB_1.writeMain)('mantenimiento', state));
     socket.on("allUsersData", (uid) => (0, authentification_1.getAllUsersListener)(socket, uid));
     listenerWithUid(socket, "stats:allStats", (start, end, id) => (0, stats_1.getAllStats)(start, end, id));
+    listenerWithUid(socket, "datoCurioso:edit", DDBB_1.editDatoCurioso);
+    listenerWithUid(socket, "datoCurioso:new", DDBB_1.newDatoCurioso);
+    listenerWithUid(socket, "datoCurioso:delete", DDBB_1.deleteDatoCurioso);
+    listenerWithUid(socket, "datosCuriosos:active", DDBB_1.activeDatosCuriosos);
 };
+const setGlobalSocket = (val) => exports.globalSocket = val;
+exports.setGlobalSocket = setGlobalSocket;

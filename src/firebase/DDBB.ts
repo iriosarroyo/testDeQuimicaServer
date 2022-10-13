@@ -1,5 +1,6 @@
 import { Database, Reference } from "firebase-admin/database";
 import { Cache } from "../interfaces/firebase";
+import { globalSocket } from "../socket";
 import { adminDB, mainDB } from "./firebaseConfig"
 
 
@@ -113,3 +114,21 @@ export const queryChildEqualToMain =  queryChildEqualTo(mainDB);
 export const inAdmin =  inDDBB(adminDB);
 export const addToMain = addToDDBB(mainDB);
 export const getUsers = ():Promise<{[k:string]:{name:string, surname:string, admin:boolean}}> => readMain("users").then(x => x[0])
+
+const PATH_DATOS_CURIOSOS = "inicio/datosCuriosos"
+const PATH_ACTIVE_DATOS_CURIOSOS = "inicio/activeDatosCuriosos"
+const timeout_table:{[k:string]:NodeJS.Timeout} = {}
+const editing_table:{[k:string]:string|undefined} = new Proxy({} as {[k:string|symbol]:string}, {set(target, prop, value) {
+    target[prop] = value
+    globalSocket.emit("datosCuriosos:editing", target)
+    return true
+},})
+export const editDatoCurioso = (key:string, val:string, username:string) => {
+    if(key in timeout_table) clearTimeout(timeout_table[key])
+    if(editing_table[key] !== username) editing_table[key] =  username
+    writeMain(`${PATH_DATOS_CURIOSOS}/${key}`, val)
+    setTimeout(() => {editing_table[key] = undefined}, 15000)
+}
+export const newDatoCurioso = () => pushMain(PATH_DATOS_CURIOSOS, "")
+export const deleteDatoCurioso = (key:string) => writeMain(`${PATH_DATOS_CURIOSOS}/${key}`, null)
+export const activeDatosCuriosos = (val:boolean) => writeMain(PATH_ACTIVE_DATOS_CURIOSOS, val)

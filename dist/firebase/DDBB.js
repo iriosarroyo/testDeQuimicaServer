@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsers = exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
+exports.activeDatosCuriosos = exports.deleteDatoCurioso = exports.newDatoCurioso = exports.editDatoCurioso = exports.getUsers = exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
+const socket_1 = require("../socket");
 const firebaseConfig_1 = require("./firebaseConfig");
 const readDDBB = (database) => {
     return async (path) => {
@@ -114,3 +115,26 @@ exports.inAdmin = inDDBB(firebaseConfig_1.adminDB);
 exports.addToMain = addToDDBB(firebaseConfig_1.mainDB);
 const getUsers = () => (0, exports.readMain)("users").then(x => x[0]);
 exports.getUsers = getUsers;
+const PATH_DATOS_CURIOSOS = "inicio/datosCuriosos";
+const PATH_ACTIVE_DATOS_CURIOSOS = "inicio/activeDatosCuriosos";
+const timeout_table = {};
+const editing_table = new Proxy({}, { set(target, prop, value) {
+        target[prop] = value;
+        socket_1.globalSocket.emit("datosCuriosos:editing", target);
+        return true;
+    }, });
+const editDatoCurioso = (key, val, username) => {
+    if (key in timeout_table)
+        clearTimeout(timeout_table[key]);
+    if (editing_table[key] !== username)
+        editing_table[key] = username;
+    (0, exports.writeMain)(`${PATH_DATOS_CURIOSOS}/${key}`, val);
+    setTimeout(() => { editing_table[key] = undefined; }, 15000);
+};
+exports.editDatoCurioso = editDatoCurioso;
+const newDatoCurioso = () => (0, exports.pushMain)(PATH_DATOS_CURIOSOS, "");
+exports.newDatoCurioso = newDatoCurioso;
+const deleteDatoCurioso = (key) => (0, exports.writeMain)(`${PATH_DATOS_CURIOSOS}/${key}`, null);
+exports.deleteDatoCurioso = deleteDatoCurioso;
+const activeDatosCuriosos = (val) => (0, exports.writeMain)(PATH_ACTIVE_DATOS_CURIOSOS, val);
+exports.activeDatosCuriosos = activeDatosCuriosos;

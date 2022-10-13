@@ -3,7 +3,7 @@ import fastifyFormbody from "@fastify/formbody";
 import fastifyIO from "fastify-socket.io"
 import { uidVerifiedUser } from "./firebase/authentification";
 import { WelcomeBody } from "./interfaces/bodies";
-import socket from "./socket";
+import socket, { setGlobalSocket } from "./socket";
 const fastify = fastifyFn({logger:true});
 
 fastify.register(fastifyFormbody)
@@ -13,6 +13,10 @@ fastify.register(fastifyIO, {cors:{
         "https://testdequimica-bcf90.firebaseapp.com",
         "https://test-de-quimica.web.app",
         "https://test-de-quimica.firebaseapp.com",
+        "https://test-de-fisica.web.app",
+        "https://test-de-fisica.firebaseapp.com",
+        "https://test-de-biologia.web.app",
+        "https://test-de-biologia.firebaseapp.com",
         "http://localhost:3000"
     ]
 }})
@@ -47,6 +51,7 @@ fastify.get("/inicio", async (req, res) =>{
 
 fastify.ready().then(()=>{
     fastify.io.on("connection", socket)
+    setGlobalSocket(fastify.io)
 })
 
 fastify.listen({port:parseInt(process.env.PORT ?? '3001'), host:'0.0.0.0'}, (err, address) =>{

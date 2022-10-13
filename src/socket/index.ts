@@ -1,6 +1,6 @@
-import { Socket } from "socket.io";
-import { getAllUsersListener, isAdminUid, uidVerifiedUser } from "../firebase/authentification";
-import { addToMain, filterAdmins, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
+import { Server, Socket } from "socket.io";
+import { getAllUsersListener, isAdminUid, isEditorUid, uidVerifiedUser } from "../firebase/authentification";
+import { activeDatosCuriosos, addToMain, deleteDatoCurioso, editDatoCurioso, filterAdmins, newDatoCurioso, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
 import { mainDB } from "../firebase/firebaseConfig";
 import { manageToken, sendNotification } from "../firebase/messaging";
 import { Topics } from "../interfaces/firebase";
@@ -9,6 +9,8 @@ import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renam
 import getUid from "../tools/uid";
 import saveStats, { getAllStats } from "../stats";
 import { StatsData } from "../interfaces/stats";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { PATHS_DDBB, PATHS_SCKT } from "../data/paths";
 
 const peopleConnected:{[k:string]:string[]|undefined} = {};
 const connectionStart:{[k:string]:number|undefined} = {}
@@ -39,7 +41,9 @@ const disconnect = (uid:string, idConnection:string) =>{
 
 const listenerWithUid = (socket:Socket, listener:string, cb:Function) =>{
     socket.on(listener, async (uid, ...params) =>{
-        socket.emit(`${listener}:${uid}`, await cb(...params))
+        console.log(uid)
+        const res = await cb(...params)
+        socket.emit(`${listener}:${uid}`, res)
     })
 }
 export default async (socket:Socket) => {
@@ -50,14 +54,14 @@ export default async (socket:Socket) => {
     connect(uid, idConnection);
     socket.on("disconnect", () => disconnect(uid, idConnection))
     socket.on("disconnectUser", () => socket.disconnect()) // just for testing purpose
-    socket.on("ddbb:history", async() =>{
-        socket.emit("ddbb:history", await readMainCache(`stats/${uid}/history`))
+    socket.on(PATHS_SCKT.ddbbHistory, async() =>{
+        socket.emit(PATHS_SCKT.ddbbHistory, await readMainCache(`stats/${uid}/history`))
     })
-    socket.on("firebase:messaging:token", (token:string, topics:Topics[]) =>{
+    socket.on(PATHS_SCKT.messagingToken, (token:string, topics:Topics[]) =>{
         manageToken(token, topics);
     })
-    listenerWithUid(socket, "stats:userStats", (start?:number, end?:number) => getAllStats(start, end, uid))
-    socket.on("main:updateLogros", async (logroKey:string, logroData:{value:number, data?:any}|undefined, extraInfo:any) =>{
+    listenerWithUid(socket, PATHS_SCKT.userStats, (start?:number, end?:number) => getAllStats(start, end, uid))
+    socket.on(PATHS_SCKT.updateLogros, async (logroKey:string, logroData:{value:number, data?:any}|undefined, extraInfo:any) =>{
         let result, newValue:number, val:number;
         if(logroKey === "testDeHoySeguidos"){
             //extraInfo must be todays day in number
@@ -118,6 +122,7 @@ export default async (socket:Socket) => {
     })
     listenerWithUid(socket, "user:isAdmin", () => isAdminUid(uid))
     listenerWithUid(socket, "sendStatsForAdmin", (data:StatsData) => saveStats(data, uid))
+    
     const isAdmin = await isAdminUid(uid);
     listenerWithUid(socket, "main:deleteUserFromDDBB", async(id:string) =>{
         if(id !== uid && !isAdmin) return;
@@ -129,6 +134,18 @@ export default async (socket:Socket) => {
         if(error) return true;
         return Object.values(users as {[k:string]:{username:string}}).some(x => x.username === username);
     })
+    const isEditor = isAdmin || await isEditorUid(uid);
+    if(!isEditor) return undefined;
+    socket.on("main:pregunta", async (val:[string, any]) =>{
+        const [id, preg] = val
+        const result = await writeMain(`${PATHS_DDBB.preguntas}/${id}`, preg);
+        if(result === undefined) socket.emit("main:pregunta", val);
+    });
+    socket.on("main:respuesta", async (val:[string, string]) =>{
+        const [id, resp] = val
+        const result = await writeMain(`respuestas/${id}`, resp);
+        if(result === undefined) socket.emit("main:respuesta", val);
+    });
     if(!isAdmin) return undefined;
     socket.on("firebase:messaging:notification", async(title:string, body:string, topic:Topics) =>{
         try{
@@ -149,7 +166,7 @@ export default async (socket:Socket) => {
     })
     socket.on("nextId", async() =>{
         try{
-            const num = await mainDB.ref("preguntasTestDeQuimica").once("value").then(x => x.numChildren()) + 1;
+            const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then(x => x.numChildren()) + 1;
             let id;
             if(num < 10) id = `id000${num}`;
             else if(num < 100) id = `id00${num}`;
@@ -160,23 +177,14 @@ export default async (socket:Socket) => {
     })
 
     socket.on("numOfPregs", async() =>{
-        const num = await mainDB.ref("preguntasTestDeQuimica").once("value").then(x => x.numChildren());
+        const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then(x => x.numChildren());
         socket.emit("numOfPregs",num)
     })
     socket.on("write:main", async(path:string, val:any) =>{
         const result = await writeMain(path, val);
         if(result === undefined) socket.emit("write:main", val);
     })
-    socket.on("main:pregunta", async (val:[string, any]) =>{
-        const [id, preg] = val
-        const result = await writeMain(`preguntasTestDeQuimica/${id}`, preg);
-        if(result === undefined) socket.emit("main:pregunta", val);
-    });
-    socket.on("main:respuesta", async (val:[string, string]) =>{
-        const [id, resp] = val
-        const result = await writeMain(`respuestas/${id}`, resp);
-        if(result === undefined) socket.emit("main:respuesta", val);
-    });
+    
 
     socket.on("documents:renameFile", async(path:string, name:string) =>{
         socket.emit("documents:renameFile", await renameFile(path, name))
@@ -190,7 +198,7 @@ export default async (socket:Socket) => {
     listenerWithUid(socket, "documents:deleteFolder", deleteFolder);
     listenerWithUid(socket, "documents:deleteFile", deleteFile);
     listenerWithUid(socket, "main:allQuestions", () =>Promise.all([
-        readMain("preguntasTestDeQuimica").then(x => x[0]),
+        readMain(PATHS_DDBB.preguntas).then(x => x[0]),
         readMain("respuestas").then(x => x[0]),
     ]));
 
@@ -204,4 +212,11 @@ export default async (socket:Socket) => {
 
     socket.on("allUsersData", (uid:string) => getAllUsersListener(socket, uid))
     listenerWithUid(socket, "stats:allStats", (start?:number, end?:number, id?:string) => getAllStats(start, end, id))
+    listenerWithUid(socket, "datoCurioso:edit", editDatoCurioso);
+    listenerWithUid(socket, "datoCurioso:new", newDatoCurioso);
+    listenerWithUid(socket, "datoCurioso:delete", deleteDatoCurioso);
+    listenerWithUid(socket, "datosCuriosos:active", activeDatosCuriosos);
 }
+
+export let globalSocket:Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
+export const setGlobalSocket =(val:Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => globalSocket = val

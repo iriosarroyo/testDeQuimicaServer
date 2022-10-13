@@ -11,4 +11,4 @@ export interface Cache{
     }
 }
 
-export type Topics = "all"|"eso3"|"eso4"|"bach1"|"bach2";
+export type Topics = "all"|"eso3"|"eso4"|"bach1"|"bach2"|"test";

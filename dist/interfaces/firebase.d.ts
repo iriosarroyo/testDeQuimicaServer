@@ -8,4 +8,4 @@ export interface Cache {
         data: [any, Error | undefined];
     };
 }
-export declare type Topics = "all" | "eso3" | "eso4" | "bach1" | "bach2";
+export declare type Topics = "all" | "eso3" | "eso4" | "bach1" | "bach2" | "test";
