@@ -1,7 +1,7 @@
 export const PATHS_DDBB = {
     datosCuriosos: 'inicio/datosCuriosos',
     activeDatosCuriosos: 'inicio/activeDatosCuriosos',
-    preguntas: 'preguntasTestDeQuimica',
+    preguntas: 'preguntas',
     respuestas: 'respuestas',
   };
   
