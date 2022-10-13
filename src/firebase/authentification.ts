@@ -1,7 +1,7 @@
 import { UserRecord } from "firebase-admin/auth";
 import { DataSnapshot } from "firebase-admin/database";
 import { Socket } from "socket.io";
-import { readMainCache } from "./DDBB";
+import { readMain } from "./DDBB";
 import { adminDB, mainAuth, mainDB } from "./firebaseConfig"
 
 /**
@@ -19,13 +19,13 @@ export const uidVerifiedUser = async (tokenId:string) =>{
 }
 
 export const isAdminUid = async (uid:string) => {
-    const [isAdministrator, error] = await readMainCache(`users/${uid}/admin`);
+    const [isAdministrator, error] = await readMain(`users/${uid}/admin`);
     if(error !== undefined) return false;
     return Boolean(isAdministrator);
 }
 
 export const isEditorUid = async (uid:string) => {
-    const [isAdministrator, error] = await readMainCache(`users/${uid}/editor`);
+    const [isAdministrator, error] = await readMain(`users/${uid}/editor`);
     if(error !== undefined) return false;
     return Boolean(isAdministrator);
 }

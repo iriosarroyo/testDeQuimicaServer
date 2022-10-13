@@ -19,14 +19,14 @@ const uidVerifiedUser = async (tokenId) => {
 };
 exports.uidVerifiedUser = uidVerifiedUser;
 const isAdminUid = async (uid) => {
-    const [isAdministrator, error] = await (0, DDBB_1.readMainCache)(`users/${uid}/admin`);
+    const [isAdministrator, error] = await (0, DDBB_1.readMain)(`users/${uid}/admin`);
     if (error !== undefined)
         return false;
     return Boolean(isAdministrator);
 };
 exports.isAdminUid = isAdminUid;
 const isEditorUid = async (uid) => {
-    const [isAdministrator, error] = await (0, DDBB_1.readMainCache)(`users/${uid}/editor`);
+    const [isAdministrator, error] = await (0, DDBB_1.readMain)(`users/${uid}/editor`);
     if (error !== undefined)
         return false;
     return Boolean(isAdministrator);
