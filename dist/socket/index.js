@@ -162,7 +162,7 @@ exports.default = async (socket) => {
         const [users, error] = await (0, DDBB_1.readMain)("users");
         if (error)
             return true;
-        return Object.values(users).some(x => x.username === username);
+        return Object.values((users ?? {})).some(x => x.username === username);
     });
     const isEditor = isAdmin || await (0, authentification_1.isEditorUid)(uid);
     if (!isEditor)
@@ -202,7 +202,7 @@ exports.default = async (socket) => {
     });
     socket.on("nextId", async () => {
         try {
-            const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then(x => x.numChildren()) + 1;
+            const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then((x) => x.numChildren()) + 1;
             let id;
             if (num < 10)
                 id = `id000${num}`;
@@ -217,7 +217,7 @@ exports.default = async (socket) => {
         catch { }
     });
     socket.on("numOfPregs", async () => {
-        const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then(x => x.numChildren());
+        const num = await firebaseConfig_1.mainDB.ref(paths_1.PATHS_DDBB.preguntas).once("value").then((x) => x.numChildren());
         socket.emit("numOfPregs", num);
     });
     socket.on("write:main", async (path, val) => {

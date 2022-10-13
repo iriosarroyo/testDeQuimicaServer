@@ -8,5 +8,6 @@ npm version $version
 
 git push origin
 foreach($proj in $projects){
+    git pull $proj
     git push $proj
 }

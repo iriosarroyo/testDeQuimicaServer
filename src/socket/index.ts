@@ -132,7 +132,7 @@ export default async (socket:Socket) => {
     listenerWithUid(socket, "main:isUsernameInDDBB", async(username:string) =>{
         const [users, error] = await readMain("users");
         if(error) return true;
-        return Object.values(users as {[k:string]:{username:string}}).some(x => x.username === username);
+        return Object.values((users ?? {}) as {[k:string]:{username:string}}).some(x => x.username === username);
     })
     const isEditor = isAdmin || await isEditorUid(uid);
     if(!isEditor) return undefined;
@@ -166,7 +166,7 @@ export default async (socket:Socket) => {
     })
     socket.on("nextId", async() =>{
         try{
-            const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then(x => x.numChildren()) + 1;
+            const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then((x:any) => x.numChildren()) + 1;
             let id;
             if(num < 10) id = `id000${num}`;
             else if(num < 100) id = `id00${num}`;
@@ -177,7 +177,7 @@ export default async (socket:Socket) => {
     })
 
     socket.on("numOfPregs", async() =>{
-        const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then(x => x.numChildren());
+        const num = await mainDB.ref(PATHS_DDBB.preguntas).once("value").then((x:any) => x.numChildren());
         socket.emit("numOfPregs",num)
     })
     socket.on("write:main", async(path:string, val:any) =>{
