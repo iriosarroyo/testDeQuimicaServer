@@ -1,6 +1,6 @@
 {
   "name": "testdequimicaserver",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "Server for test de química",
   "main": "build/server.js",
   "scripts": {
