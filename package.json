@@ -30,13 +30,13 @@
   "dependencies": {
     "@fastify/formbody": "^7.3.0",
     "dotenv": "^16.0.2",
-    "fastify": "^4.8.1",
+    "fastify": "^4.9.0",
     "fastify-plugin": "^4.3.0",
     "fastify-socket.io": "^4.0.0",
     "firebase-admin": "^11.1.0",
     "handlebars": "^4.7.7",
     "point-of-view": "^6.3.0",
-    "socket.io": "^4.5.2"
+    "socket.io": "^4.5.3"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
