@@ -38,18 +38,18 @@ const stats_1 = __importStar(require("../stats"));
 const paths_1 = require("../data/paths");
 const peopleConnected = {};
 const connectionStart = {};
-const connect = (uid, idConnection) => {
+const connect = (uid, idConnection, socket) => {
     if (peopleConnected[uid] === undefined) {
-        peopleConnected[uid] = [idConnection];
+        peopleConnected[uid] = { [idConnection]: socket };
         connectionStart[uid] = Date.now();
         (0, DDBB_1.writeAdmin)(`users/${uid}/connected`, true);
     }
     else
-        peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection];
+        peopleConnected[uid] = { ...peopleConnected[uid] ?? {}, [idConnection]: socket };
 };
 const disconnect = (uid, idConnection) => {
-    peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
-    if (peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0) {
+    delete peopleConnected[uid]?.[idConnection];
+    if (peopleConnected[uid] === undefined || Object.keys(peopleConnected[uid] ?? {}).length === 0) {
         peopleConnected[uid] = undefined;
         const timeConnected = Date.now() - (connectionStart[uid] ?? Date.now());
         (0, DDBB_1.pushAdmin)('connectionTime', {
@@ -63,9 +63,16 @@ const disconnect = (uid, idConnection) => {
 };
 const listenerWithUid = (socket, listener, cb) => {
     socket.on(listener, async (uid, ...params) => {
-        console.log(uid);
         const res = await cb(...params);
         socket.emit(`${listener}:${uid}`, res);
+    });
+};
+const execOnUser = (user, cb) => {
+    Object.values(peopleConnected[user] ?? {}).forEach(cb);
+};
+const execToAllUsers = (cb) => {
+    Object.values(peopleConnected).forEach((user) => {
+        Object.values(user ?? {}).forEach(cb);
     });
 };
 exports.default = async (socket) => {
@@ -74,7 +81,7 @@ exports.default = async (socket) => {
     if (uid === undefined)
         return socket.disconnect(true);
     const idConnection = (0, uid_1.default)();
-    connect(uid, idConnection);
+    connect(uid, idConnection, socket);
     socket.on("disconnect", () => disconnect(uid, idConnection));
     socket.on("disconnectUser", () => socket.disconnect()); // just for testing purpose
     socket.on(paths_1.PATHS_SCKT.ddbbHistory, async () => {
@@ -107,7 +114,7 @@ exports.default = async (socket) => {
             const { value, data } = logroData ?? { value: 0, data: {} };
             val = value;
             const puntsTemas = extraInfo;
-            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || !!data[k]]));
+            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || Boolean(data[k])]));
             const newData = Object.fromEntries(hasEverHadA10);
             newValue = hasEverHadA10.filter(([, v]) => v).length;
             result = await (0, DDBB_1.writeMain)(`users/${uid}/logros/${logroKey}`, {
@@ -249,6 +256,11 @@ exports.default = async (socket) => {
     listenerWithUid(socket, "datoCurioso:new", DDBB_1.newDatoCurioso);
     listenerWithUid(socket, "datoCurioso:delete", DDBB_1.deleteDatoCurioso);
     listenerWithUid(socket, "datosCuriosos:active", DDBB_1.activeDatosCuriosos);
+    listenerWithUid(socket, "admin:disconnectUser", (user) => execOnUser(user, (s) => s?.disconnect()));
+    listenerWithUid(socket, "admin:reloadUser", (user) => execOnUser(user, (s) => s?.emit("admin:reload")));
+    listenerWithUid(socket, "admin:disconnectAllUsers", () => execToAllUsers((s) => s?.disconnect()));
+    listenerWithUid(socket, "admin:reloadAllUsers", () => execToAllUsers((s) => s?.emit("admin:reload")));
+    listenerWithUid(socket, "admin:allUids", DDBB_1.getAllUids);
 };
 const setGlobalSocket = (val) => exports.globalSocket = val;
 exports.setGlobalSocket = setGlobalSocket;

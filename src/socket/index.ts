@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { getAllUsersListener, isAdminUid, isEditorUid, uidVerifiedUser } from "../firebase/authentification";
-import { activeDatosCuriosos, addToMain, deleteDatoCurioso, editDatoCurioso, filterAdmins, newDatoCurioso, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
+import { activeDatosCuriosos, addToMain, deleteDatoCurioso, editDatoCurioso, filterAdmins, getAllUids, newDatoCurioso, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
 import { mainDB } from "../firebase/firebaseConfig";
 import { manageToken, sendNotification } from "../firebase/messaging";
 import { Topics } from "../interfaces/firebase";
@@ -12,21 +12,21 @@ import { StatsData } from "../interfaces/stats";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { PATHS_DDBB, PATHS_SCKT } from "../data/paths";
 
-const peopleConnected:{[k:string]:string[]|undefined} = {};
+const peopleConnected:{[k:string]:{[k2:string]:Socket|undefined}|undefined} = {};
 const connectionStart:{[k:string]:number|undefined} = {}
 
-const connect = (uid:string, idConnection:string) =>{
+const connect = (uid:string, idConnection:string, socket:Socket) =>{
     if(peopleConnected[uid] === undefined) {
-        peopleConnected[uid] = [idConnection];
+        peopleConnected[uid] = {[idConnection]:socket};
         connectionStart[uid] = Date.now();
         writeAdmin(`users/${uid}/connected`, true);
     }
-    else peopleConnected[uid] = [...peopleConnected[uid] ?? [], idConnection]
+    else peopleConnected[uid] = {...peopleConnected[uid] ?? {}, [idConnection]:socket}
 }
 
 const disconnect = (uid:string, idConnection:string) =>{
-    peopleConnected[uid] = peopleConnected[uid]?.filter(elem => elem !== idConnection);
-    if(peopleConnected[uid] === undefined || peopleConnected[uid]?.length === 0){
+    delete peopleConnected[uid]?.[idConnection] 
+    if(peopleConnected[uid] === undefined || Object.keys(peopleConnected[uid] ?? {}).length === 0){
         peopleConnected[uid] = undefined;
         const timeConnected = Date.now() - (connectionStart[uid] ?? Date.now())
         pushAdmin('connectionTime', {
@@ -41,9 +41,18 @@ const disconnect = (uid:string, idConnection:string) =>{
 
 const listenerWithUid = (socket:Socket, listener:string, cb:Function) =>{
     socket.on(listener, async (uid, ...params) =>{
-        console.log(uid)
         const res = await cb(...params)
         socket.emit(`${listener}:${uid}`, res)
+    })
+}
+
+const execOnUser = (user:string, cb: (s:Socket|undefined) => any) =>{
+    Object.values(peopleConnected[user] ?? {}).forEach(cb)
+}
+
+const execToAllUsers = (cb: (s:Socket|undefined) => any) =>{
+    Object.values(peopleConnected).forEach((user) =>{
+        Object.values(user ?? {}).forEach(cb)
     })
 }
 export default async (socket:Socket) => {
@@ -51,7 +60,7 @@ export default async (socket:Socket) => {
     const uid = await uidVerifiedUser(tokenId);
     if(uid === undefined) return socket.disconnect(true);
     const idConnection = getUid();
-    connect(uid, idConnection);
+    connect(uid, idConnection, socket);
     socket.on("disconnect", () => disconnect(uid, idConnection))
     socket.on("disconnectUser", () => socket.disconnect()) // just for testing purpose
     socket.on(PATHS_SCKT.ddbbHistory, async() =>{
@@ -82,7 +91,7 @@ export default async (socket:Socket) => {
             const {value, data} = logroData ?? {value: 0, data:{}}
             val = value;
             const puntsTemas = extraInfo
-            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || !!data[k]]))
+            const hasEverHadA10 = Object.entries(puntsTemas).map(([k, v]) => ([k, v === 10 || Boolean(data[k])]))
             const newData = Object.fromEntries(hasEverHadA10);
             newValue = hasEverHadA10.filter(([, v]) => v).length
             result = await writeMain(`users/${uid}/logros/${logroKey}`, {
@@ -216,6 +225,11 @@ export default async (socket:Socket) => {
     listenerWithUid(socket, "datoCurioso:new", newDatoCurioso);
     listenerWithUid(socket, "datoCurioso:delete", deleteDatoCurioso);
     listenerWithUid(socket, "datosCuriosos:active", activeDatosCuriosos);
+    listenerWithUid(socket, "admin:disconnectUser", (user:string) => execOnUser(user, (s) => s?.disconnect()))
+    listenerWithUid(socket, "admin:reloadUser", (user:string) => execOnUser(user, (s) => s?.emit("admin:reload")))
+    listenerWithUid(socket, "admin:disconnectAllUsers", () => execToAllUsers((s) => s?.disconnect()))
+    listenerWithUid(socket, "admin:reloadAllUsers", () => execToAllUsers((s) => s?.emit("admin:reload")))
+    listenerWithUid(socket, "admin:allUids", getAllUids)
 }
 
 export let globalSocket:Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>

@@ -22,3 +22,4 @@ export declare const editDatoCurioso: (key: string, val: string, username: strin
 export declare const newDatoCurioso: () => Promise<[Reference | undefined, Error | undefined]>;
 export declare const deleteDatoCurioso: (key: string) => Promise<Error | undefined>;
 export declare const activeDatosCuriosos: (val: boolean) => Promise<Error | undefined>;
+export declare const getAllUids: () => Promise<string[]>;

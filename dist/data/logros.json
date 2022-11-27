@@ -191,29 +191,29 @@
         "type": "Online"
     },
     "testDone10": {
-        "id": "testDone10",
+        "id": "testsDone10",
         "description": "Realiza 10 tests.",
         "stars": 1,
         "name": "Téstate (fácil)",
-        "key": "onlineDone",
+        "key": "testsDone",
         "value": 10,
         "type": "General"
     },
     "testDone50": {
-        "id": "testDone50",
+        "id": "testsDone50",
         "description": "Realiza 50 tests.",
         "stars": 2,
         "name": "Téstate (medio)",
-        "key": "onlineDone",
+        "key": "testsDone",
         "value": 50,
         "type": "General"
     },
     "testDone100": {
-        "id": "testDone100",
+        "id": "testsDone100",
         "description": "Realiza 100 tests.",
         "stars": 3,
         "name": "Téstate (difícil)",
-        "key": "onlineDone",
+        "key": "testsDone",
         "value": 100,
         "type": "General"
     },

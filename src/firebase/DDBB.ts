@@ -132,3 +132,7 @@ export const editDatoCurioso = (key:string, val:string, username:string) => {
 export const newDatoCurioso = () => pushMain(PATH_DATOS_CURIOSOS, "")
 export const deleteDatoCurioso = (key:string) => writeMain(`${PATH_DATOS_CURIOSOS}/${key}`, null)
 export const activeDatosCuriosos = (val:boolean) => writeMain(PATH_ACTIVE_DATOS_CURIOSOS, val)
+export const getAllUids = async () =>{
+    const [res] = await readMain('users');
+    return Object.keys(res ?? {});
+}

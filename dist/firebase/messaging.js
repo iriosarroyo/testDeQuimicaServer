@@ -35,7 +35,6 @@ const updateAllTokens = async () => {
         firebaseConfig_1.mainMsg.subscribeToTopic(tokensByTopic[topic], topic);
     });
 };
-console.log('hello', subscribeToTopic("fwUxOaRvvqtbjM6eNUWBrC:APA91bFEPi0eSFr9r-mJijsfqKdOJ4lsiympYTQ8OuwUFqYWVkBS3EGoM_myrNrxU7YWTWmen-0Sl2NoHyWmk1g0dCe47IhhC6CJU4cG-u-I85SK588nhPtxK6w-lO9pDfrE6au-dsvS", "test"));
 const A_MONTH = 30 * 24 * 3600000;
 const manageToken = async (token, topics) => {
     const path = `messaging/tokens/${token}`;

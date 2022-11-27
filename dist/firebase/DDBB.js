@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.activeDatosCuriosos = exports.deleteDatoCurioso = exports.newDatoCurioso = exports.editDatoCurioso = exports.getUsers = exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
+exports.getAllUids = exports.activeDatosCuriosos = exports.deleteDatoCurioso = exports.newDatoCurioso = exports.editDatoCurioso = exports.getUsers = exports.addToMain = exports.inAdmin = exports.queryChildEqualToMain = exports.filterAdmins = exports.pushAdmin = exports.pushMain = exports.writeAdmin = exports.writeMain = exports.readAdminCache = exports.readMainCache = exports.readAdmin = exports.readMain = void 0;
 const socket_1 = require("../socket");
 const firebaseConfig_1 = require("./firebaseConfig");
 const readDDBB = (database) => {
@@ -138,3 +138,8 @@ const deleteDatoCurioso = (key) => (0, exports.writeMain)(`${PATH_DATOS_CURIOSOS
 exports.deleteDatoCurioso = deleteDatoCurioso;
 const activeDatosCuriosos = (val) => (0, exports.writeMain)(PATH_ACTIVE_DATOS_CURIOSOS, val);
 exports.activeDatosCuriosos = activeDatosCuriosos;
+const getAllUids = async () => {
+    const [res] = await (0, exports.readMain)('users');
+    return Object.keys(res ?? {});
+};
+exports.getAllUids = getAllUids;
