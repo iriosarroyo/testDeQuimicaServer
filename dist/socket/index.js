@@ -88,7 +88,7 @@ exports.default = async (socket) => {
         socket.emit(paths_1.PATHS_SCKT.ddbbHistory, await (0, DDBB_1.readMainCache)(`stats/${uid}/history`));
     });
     socket.on(paths_1.PATHS_SCKT.messagingToken, (token, topics) => {
-        (0, messaging_1.manageToken)(token, topics);
+        (0, messaging_1.manageToken)(uid, token, topics);
     });
     listenerWithUid(socket, paths_1.PATHS_SCKT.userStats, (start, end) => (0, stats_1.getAllStats)(start, end, uid));
     socket.on(paths_1.PATHS_SCKT.updateLogros, async (logroKey, logroData, extraInfo) => {
@@ -261,6 +261,16 @@ exports.default = async (socket) => {
     listenerWithUid(socket, "admin:disconnectAllUsers", () => execToAllUsers((s) => s?.disconnect()));
     listenerWithUid(socket, "admin:reloadAllUsers", () => execToAllUsers((s) => s?.emit("admin:reload")));
     listenerWithUid(socket, "admin:allUids", DDBB_1.getAllUids);
+    listenerWithUid(socket, "notification:getAllGroups", messaging_1.getAllGroups);
+    listenerWithUid(socket, "notification:addPersonToGroup", messaging_1.addPersonToGroup);
+    listenerWithUid(socket, "notification:removePersonFromGroup", messaging_1.removePersonFromGroup);
+    listenerWithUid(socket, "notification:createGroup", messaging_1.createGroup);
+    listenerWithUid(socket, "notification:deleteGroup", messaging_1.deleteGroup);
+    listenerWithUid(socket, "notification:copyGroup", messaging_1.copyGroup);
+    listenerWithUid(socket, "notification:renameGroup", messaging_1.renameGroup);
+    listenerWithUid(socket, "notification:sendEmail", messaging_1.sendEmail);
+    listenerWithUid(socket, "notification:getStoredEmail", () => (0, messaging_1.getStoredEmail)(uid));
+    listenerWithUid(socket, "notification:saveEmail", (data) => (0, messaging_1.saveEmail)(socket, uid, data));
 };
 const setGlobalSocket = (val) => exports.globalSocket = val;
 exports.setGlobalSocket = setGlobalSocket;

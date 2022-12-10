@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import { getAllUsersListener, isAdminUid, isEditorUid, uidVerifiedUser } from "../firebase/authentification";
 import { activeDatosCuriosos, addToMain, deleteDatoCurioso, editDatoCurioso, filterAdmins, getAllUids, newDatoCurioso, pushAdmin, queryChildEqualToMain, readMain, readMainCache, writeAdmin, writeMain } from "../firebase/DDBB";
 import { mainDB } from "../firebase/firebaseConfig";
-import { manageToken, sendNotification } from "../firebase/messaging";
+import { addPersonToGroup, copyGroup, createGroup, deleteGroup, getAllGroups, getStoredEmail, manageToken, removePersonFromGroup, renameGroup, saveEmail, sendEmail, sendNotification } from "../firebase/messaging";
 import { Topics } from "../interfaces/firebase";
 import logros from "../data/logros.json"
 import { createFolder, deleteFile, deleteFolder, fileListener, renameFile, renameFolder } from "../firebase/storage";
@@ -67,7 +67,7 @@ export default async (socket:Socket) => {
         socket.emit(PATHS_SCKT.ddbbHistory, await readMainCache(`stats/${uid}/history`))
     })
     socket.on(PATHS_SCKT.messagingToken, (token:string, topics:Topics[]) =>{
-        manageToken(token, topics);
+        manageToken(uid, token, topics);
     })
     listenerWithUid(socket, PATHS_SCKT.userStats, (start?:number, end?:number) => getAllStats(start, end, uid))
     socket.on(PATHS_SCKT.updateLogros, async (logroKey:string, logroData:{value:number, data?:any}|undefined, extraInfo:any) =>{
@@ -230,6 +230,16 @@ export default async (socket:Socket) => {
     listenerWithUid(socket, "admin:disconnectAllUsers", () => execToAllUsers((s) => s?.disconnect()))
     listenerWithUid(socket, "admin:reloadAllUsers", () => execToAllUsers((s) => s?.emit("admin:reload")))
     listenerWithUid(socket, "admin:allUids", getAllUids)
+    listenerWithUid(socket, "notification:getAllGroups", getAllGroups)
+    listenerWithUid(socket, "notification:addPersonToGroup", addPersonToGroup)
+    listenerWithUid(socket, "notification:removePersonFromGroup", removePersonFromGroup)
+    listenerWithUid(socket, "notification:createGroup", createGroup)
+    listenerWithUid(socket, "notification:deleteGroup", deleteGroup)
+    listenerWithUid(socket, "notification:copyGroup", copyGroup)
+    listenerWithUid(socket, "notification:renameGroup", renameGroup)
+    listenerWithUid(socket, "notification:sendEmail", sendEmail)
+    listenerWithUid(socket, "notification:getStoredEmail", ()=> getStoredEmail(uid))
+    listenerWithUid(socket, "notification:saveEmail",(data:{}) => saveEmail(socket, uid, data))
 }
 
 export let globalSocket:Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
