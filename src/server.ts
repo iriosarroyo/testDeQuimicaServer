@@ -4,6 +4,8 @@ import fastifyIO from "fastify-socket.io"
 import { uidVerifiedUser } from "./firebase/authentification";
 import { WelcomeBody } from "./interfaces/bodies";
 import socket, { setGlobalSocket } from "./socket";
+import { cpus, freemem,  totalmem } from "os";
+import {cpu } from "node-os-utils"
 const fastify = fastifyFn({logger:true});
 
 fastify.register(fastifyFormbody)
@@ -49,8 +51,26 @@ fastify.get("/inicio", async (req, res) =>{
     return true
 })
 
+const TIME_STATS = 500;
+
+const getServerStats = async () => {
+    const cpuUsage = await cpu.usage(TIME_STATS) 
+    const ram = totalmem();
+    const freeRam = freemem();
+    const cpuCount = cpus().length
+    return {
+        ram,
+        freeRam,
+        cpuCount,
+        cpu:cpuUsage,
+    }
+}
+
 fastify.ready().then(()=>{
     fastify.io.on("connection", socket)
+    setInterval(async () => {
+        fastify.io.emit("serverStats", await getServerStats())
+    }, TIME_STATS)
     setGlobalSocket(fastify.io)
 })
 

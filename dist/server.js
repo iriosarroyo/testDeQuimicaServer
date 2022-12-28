@@ -31,6 +31,8 @@ const formbody_1 = __importDefault(require("@fastify/formbody"));
 const fastify_socket_io_1 = __importDefault(require("fastify-socket.io"));
 const authentification_1 = require("./firebase/authentification");
 const socket_1 = __importStar(require("./socket"));
+const os_1 = require("os");
+const node_os_utils_1 = require("node-os-utils");
 const fastify = (0, fastify_1.default)({ logger: true });
 fastify.register(formbody_1.default);
 fastify.register(fastify_socket_io_1.default, { cors: {
@@ -73,8 +75,24 @@ fastify.get("/welcome", async (req, res) => {
 fastify.get("/inicio", async (req, res) => {
     return true;
 });
+const TIME_STATS = 500;
+const getServerStats = async () => {
+    const cpuUsage = await node_os_utils_1.cpu.usage(TIME_STATS);
+    const ram = (0, os_1.totalmem)();
+    const freeRam = (0, os_1.freemem)();
+    const cpuCount = (0, os_1.cpus)().length;
+    return {
+        ram,
+        freeRam,
+        cpuCount,
+        cpu: cpuUsage,
+    };
+};
 fastify.ready().then(() => {
     fastify.io.on("connection", socket_1.default);
+    setInterval(async () => {
+        fastify.io.emit("serverStats", await getServerStats());
+    }, TIME_STATS);
     (0, socket_1.setGlobalSocket)(fastify.io);
 });
 fastify.listen({ port: parseInt(process.env.PORT ?? '3001'), host: '0.0.0.0' }, (err, address) => {
