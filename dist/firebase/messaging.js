@@ -221,7 +221,7 @@ const sendEmail = (emails, subject, html) => {
 exports.sendEmail = sendEmail;
 let timeout;
 const localStoredEmails = {};
-const getStoredEmail = (uid) => (localStoredEmails[uid] ?? (0, DDBB_1.readAdmin)(`emails/${uid}`).then(x => x[0]));
+const getStoredEmail = (uid) => (localStoredEmails[uid] ?? (0, DDBB_1.readAdmin)(`emails/${uid}`).then(x => x[0] ?? {}));
 exports.getStoredEmail = getStoredEmail;
 const counts = {};
 const saveEmail = (socket, uid, { emails, groups, html, subject, users }) => {

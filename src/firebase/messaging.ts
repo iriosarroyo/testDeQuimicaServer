@@ -223,7 +223,7 @@ export const sendEmail = (emails:string|string[], subject:string, html:string) =
 let timeout: NodeJS.Timeout;
 const localStoredEmails:{[k:string]:any} = {}
 export const getStoredEmail = (uid:string) => (
-    localStoredEmails[uid] ?? readAdmin(`emails/${uid}`).then(x => x[0])
+    localStoredEmails[uid] ?? readAdmin(`emails/${uid}`).then(x => x[0] ?? {})
 )
 
 const counts:{[k:string]:number|undefined} ={}
