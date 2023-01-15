@@ -1,5 +1,7 @@
 import { Database, Reference } from "firebase-admin/database";
+import { Socket } from "socket.io";
 import { Cache } from "../interfaces/firebase";
+import { PreguntaTest } from "../interfaces/preguntas";
 import { globalSocket } from "../socket";
 import { adminDB, mainDB } from "./firebaseConfig"
 
@@ -135,4 +137,57 @@ export const activeDatosCuriosos = (val:boolean) => writeMain(PATH_ACTIVE_DATOS_
 export const getAllUids = async () =>{
     const [res] = await readMain('users');
     return Object.keys(res ?? {});
+}
+
+let preguntas:{[k:string]:PreguntaTest};
+let respuestas:{[k:string]:string}
+const timeoutsPregs: { [k: string]: NodeJS.Timeout; } = {}
+const countsPregs: { [x: string]: number; } = {}
+
+export const getPreguntas = async () =>{
+    if(!preguntas) preguntas = (await readMain('preguntas'))[0] ?? {}
+    return preguntas
+}
+export const getRespuestas = async () =>{
+    if(!respuestas) respuestas = (await readMain('respuestas'))[0] ?? {}
+    return respuestas
+}
+
+export const savePregunta = (socket:Socket, id:string, pregunta:PreguntaTest, respuesta:string, newQ?:boolean) =>{
+    if(!preguntas) preguntas = {}
+    if(!respuestas) respuestas = {}
+    preguntas[id] = pregunta
+    respuestas[id] = respuesta
+    globalSocket.emit('preguntas:edit', socket.id, id, pregunta, respuesta, newQ)
+    const thisCount =(countsPregs[id] ?? 0) +  1 
+    countsPregs[id] = thisCount
+    const write = () =>{
+        writeMain(`preguntas/${id}`, pregunta)
+        writeMain(`respuestas/${id}`, respuesta)
+    }
+    if(thisCount % 200 === 0 || newQ) write();
+    clearTimeout(timeoutsPregs[id])
+    timeoutsPregs[id] = setTimeout(write, 15000)
+}
+
+const getNextId = () => {
+    const idNums = Object.keys(preguntas).map(x => parseInt(x.slice(2)))
+    const maxId = Math.max(...idNums)
+    const strId = `000${maxId}`.slice(-4)
+    return `id${strId}`
+}
+
+const newQuestion = (socket:Socket) =>{
+    const id = getNextId()
+    savePregunta(socket, id, {
+        pregunta: "",
+        done: false,
+        id,
+        level:"1",
+        nivelYTema:"tema1_1",
+        opciones: {},
+        tema: 'tema1',
+        year: ""
+    }, "", true)
+    return id
 }
